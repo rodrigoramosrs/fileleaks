@@ -45,7 +45,7 @@ namespace FileLeaks.Core.Services
                 int percetage = 100 * (i + 1) / Files.Count;
                 this.NotifyProgressChange(new FileScanProgress() { Filename = file, ProgressPercentage = percetage });
 
-                if (_ExtensionsToIgnore.Contains(Path.GetExtension(file).Replace(".", ""))) continue;
+                if (_ExtensionsToIgnore.Contains(Path.GetExtension(file).ToLower().Replace(".", ""))) continue;
 
                 var secretFindResult = FindSecretInFile(file);
 
@@ -71,6 +71,7 @@ namespace FileLeaks.Core.Services
             if (SizeUtils.ConvertBytesToMegabytes(new FileInfo(filePath).Length) > _MaxFileSizeMB) return null;
 
             var FileContent = File.ReadAllLines(filePath);
+            
             var result = _RegexService.IsMatch(FileContent);
 
             if (result?.Count() > 0)
