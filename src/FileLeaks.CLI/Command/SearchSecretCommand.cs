@@ -53,7 +53,7 @@ namespace FileLeaks.CLI.Command
 
         private async Task Boot()
         {
-            var fileLeakerCore = new FileLeakCore($"{Environment.CurrentDirectory}\\regex");
+            var fileLeakerCore = new FileLeakCore($"{Environment.CurrentDirectory}/regex");
 
             fileLeakerCore.OnFinished += FileLeakerCore_OnFinished;
             fileLeakerCore.OnProgressChange += FileLeakerCore_OnProgressChange;
@@ -85,7 +85,7 @@ namespace FileLeaks.CLI.Command
                     CurrentSecretsTask.IsIndeterminate = true;
 
 
-                    fileLeakerCore.DoSearch(@"c:\temp");
+                    fileLeakerCore.DoSearch(@"c:/temp");
 
                     while (!ctx.IsFinished)
                     {
@@ -117,8 +117,8 @@ namespace FileLeaks.CLI.Command
                 }
 
             }
-            File.WriteAllText($"{Environment.CurrentDirectory}\\result.txt", contentOutput.ToString());
-            _console.MarkupLine($"[bold] Report saved in {Environment.CurrentDirectory}\\result.txt[/]");
+            File.WriteAllText($"{Environment.CurrentDirectory}/result.txt", contentOutput.ToString());
+            _console.MarkupLine($"[bold] Report saved in {Environment.CurrentDirectory}/result.txt[/]");
         }
 
         private static IEnumerable<Core.Models.SecretResult> _SecretResultList;

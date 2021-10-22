@@ -44,16 +44,17 @@ namespace FileLeaks.Core.Services
                     var Match = Regex.Match(line, keyValuePair.Value);
                     if (Match.Success)
                     {
+                        var matchResult = new MatchResult()
+                        {
+                            Name = keyValuePair.Key,
+                            Index = Match.Index,
+                            Length = Match.Value.Length,
+                            Result = Match.Value,
+                            Content = line,
+                        };
+
                         lock (result)
                         {
-                            var matchResult = new MatchResult()
-                            {
-                                Name = keyValuePair.Key,
-                                Index = Match.Index,
-                                Length = Match.Value.Length,
-                                Result = Match.Value,
-                                Content = line,
-                            };
                             result.Add(matchResult);
                         }
 
