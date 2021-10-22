@@ -1,6 +1,7 @@
 ﻿{
-  "Username Label": "username\\s*",
-  "Password Label": "password\\s*",
+  "Database Connection": "(?i)(database)",
+  "Username Label": "(?i)username\\s*",
+  "Password Label": "(?i)password\\s*",
   "Slack Token": "(xox[p|b|o|a]-[0-9]{12}-[0-9]{12}-[0-9]{12}-[a-z0-9]{32})",
   "RSA private key": "-----BEGIN RSA PRIVATE KEY-----",
   "SSH (OPENSSH) private key": "-----BEGIN OPENSSH PRIVATE KEY-----",
