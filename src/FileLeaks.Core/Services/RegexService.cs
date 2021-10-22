@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using FileLeaks.Core.Models;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -26,10 +27,10 @@ namespace FileLeaks.Core.Services
 
         }
 
-        public Dictionary<string, Match> IsMatch(string[] Content)
+        public IEnumerable<MatchResult> IsMatch(string[] Content)
         {
-            Dictionary<string, Match> result = new Dictionary<string, Match>();
-
+            //Dictionary<string, Match> result = new Dictionary<string, Match>();
+            List<MatchResult> result = new List<MatchResult>();
             foreach (var line in Content)
             {
                 Parallel.ForEach(_RegexDictionary,
@@ -45,44 +46,22 @@ namespace FileLeaks.Core.Services
                     {
                         lock (result)
                         {
-
-                            if (result.ContainsKey(keyValuePair.Key))
+                            var matchResult = new MatchResult()
                             {
-                                int count = 0;
-                                string keyName;
-                                do
-                                {
-                                    count++;
-                                    keyName = $"{keyValuePair.Key}_{count}";
-                                }
-                                while (result.ContainsKey(keyName));
-                                result.Add(keyName, Match);
-                            }
-                            else
-                                result.Add(keyValuePair.Key, Match);
+                                Name = keyValuePair.Key,
+                                Index = Match.Index,
+                                Length = Match.Value.Length,
+                                Result = Match.Value,
+                                Content = line,
+                            };
+                            result.Add(matchResult);
                         }
 
                     }
                 });
             }
 
-
-
-            //foreach (var regex in _RegexDictionary)
-            //{
-            //    //var matchCollection = Regex.Matches(Content, regex.Value);
-            //    //if (matchCollection.Count <= 0) continue;
-            //    var Match = Regex.Match(Content, regex.Value);
-            //    if (!Match.Success) continue;
-
-            //    result.Add(regex.Key, Match);
-
-            //    //result = result || Regex.IsMatch(Content, regex.Value);
-            //    //return true;
-            //}
-
-
-            return result;
+            return result.Count <= 0 ? null : result;
         }
     }
 }

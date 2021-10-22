@@ -23,5 +23,6 @@ namespace FileLeaks.Core.Models
         public int Index { get; set; }
         public int Length { get; set; }
         public string Result { get; set; }
+        public string Content { get; internal set; }
     }
 }

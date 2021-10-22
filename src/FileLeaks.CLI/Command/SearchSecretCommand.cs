@@ -84,6 +84,7 @@ namespace FileLeaks.CLI.Command
                     CurrentSecretsTask = ctx.AddTask("[yellow bold]Secrets found: 0[/]");
                     CurrentSecretsTask.IsIndeterminate = true;
 
+
                     fileLeakerCore.DoSearch(@"c:\temp");
 
                     while (!ctx.IsFinished)
@@ -94,7 +95,11 @@ namespace FileLeaks.CLI.Command
 
                 });
 
-            //Thread.Sleep(1500);
+            ProcessDataAndFinishProcess();
+        }
+
+        private void ProcessDataAndFinishProcess()
+        {
             StringBuilder contentOutput = new StringBuilder();
             foreach (var secretResult in _SecretResultList)
             {
@@ -102,10 +107,13 @@ namespace FileLeaks.CLI.Command
                 contentOutput.AppendLine($"[+] File: {secretResult.FilePath}");
                 foreach (var matchResult in secretResult.MatchResultList)
                 {
-                    _console.MarkupLine($"[bold yellow] | -[/][bold] Key: {matchResult.Name}[/]");
-                    _console.MarkupLine($"[bold yellow] | -[/][bold] Secret: {matchResult.Result}[/]");
-                    contentOutput.AppendLine($" | - Key: {matchResult.Name}");
-                    contentOutput.AppendLine($" | - Secret: {matchResult.Result}");
+                    _console.MarkupLine($"[bold yellow] | -[/][bold] Key: {matchResult.Name.Replace("[", "[[").Replace("]", "]]")} | Secret: {matchResult.Result.Replace("[", "[[").Replace("]", "]]")}[/]");
+                    //_console.MarkupLine($"[bold yellow] | -[/][bold] [/]");
+                    _console.MarkupLine($"[bold yellow] | -[/][bold] Content: {matchResult.Content.Replace("[", "[[").Replace("]", "]]")}[/]");
+                    _console.MarkupLine($"[bold yellow] | [/]");
+                    contentOutput.AppendLine($" | - Key: {matchResult.Name} | Secret: {matchResult.Result}");
+                    contentOutput.AppendLine($" | - Content: {matchResult.Content.TrimStart().TrimEnd()}");
+                    contentOutput.AppendLine($" | ");
                 }
 
             }

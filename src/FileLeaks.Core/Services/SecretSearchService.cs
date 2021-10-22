@@ -18,12 +18,18 @@ namespace FileLeaks.Core.Services
         private readonly FileService _FileService;
         private readonly RegexService _RegexService;
         private readonly int _MaxFileSizeMB;
+        private readonly string[] _ExtensionsToIgnore;
 
         public SecretSearchService(string RegexDirectory, int MaxFileSizeMB = 50)
         {
             _FileService = new FileService();
             _RegexService = new RegexService(RegexDirectory);
             _MaxFileSizeMB = MaxFileSizeMB;
+
+            if (File.Exists("extensions_to_ignore.conf"))
+                _ExtensionsToIgnore = File.ReadAllLines("extensions_to_ignore.conf");
+            else
+                _ExtensionsToIgnore = new string[0];
         }
 
         public IEnumerable<SecretResult> SearchSecretInFolder(string directory)
@@ -38,6 +44,8 @@ namespace FileLeaks.Core.Services
                 var file = Files[i];
                 int percetage = 100 * (i + 1) / Files.Count;
                 this.NotifyProgressChange(new FileScanProgress() { Filename = file, ProgressPercentage = percetage });
+
+                if (_ExtensionsToIgnore.Contains(Path.GetExtension(file).Replace(".", ""))) continue;
 
                 var secretFindResult = FindSecretInFile(file);
 
@@ -62,25 +70,17 @@ namespace FileLeaks.Core.Services
         {
             if (SizeUtils.ConvertBytesToMegabytes(new FileInfo(filePath).Length) > _MaxFileSizeMB) return null;
 
-            var result = new List<MatchResult>();
             var FileContent = File.ReadAllLines(filePath);
-            var dictionaryWithMatch = _RegexService.IsMatch(FileContent);
+            var result = _RegexService.IsMatch(FileContent);
 
-            if (dictionaryWithMatch.Count <= 0) return null;
-
-            
-            foreach (var itemWithMach in dictionaryWithMatch)
+            if (result?.Count() > 0)
             {
-                var matchResult = new MatchResult()
+                foreach (var secret in result)
                 {
-                    Name = itemWithMach.Key,
-                    Index = itemWithMach.Value.Index,
-                    Length = itemWithMach.Value.Length,
-                    Result = itemWithMach.Value.Value,
-                };
-                result.Add(matchResult);
-                this.NotifyOnSecretFound(matchResult);
+                    this.NotifyOnSecretFound(secret);
+                }
             }
+
             return result;
         }
 
