@@ -43,10 +43,10 @@ namespace FileLeaks
             string outputName = "all.json";
             Assembly currentAssembly = Assembly.GetExecutingAssembly();
 
-            if (!Directory.Exists(@".\regex"))
-                Directory.CreateDirectory(@".\regex");
+            if (!Directory.Exists(@"./regex"))
+                Directory.CreateDirectory(@"./regex");
 
-            FileStream outputFileStream = new FileStream(@$".\regex\{outputName}", FileMode.OpenOrCreate);
+            FileStream outputFileStream = new FileStream(@$"./regex/{outputName}", FileMode.OpenOrCreate);
             Stream res = currentAssembly.GetManifestResourceStream(resourceName);
             if (res != null)
             {
