@@ -8,7 +8,8 @@ Search files for secrets just easy!
 ## Features
 
 - Parallelism in the search for secrets. Let topics play...
-- Single file
+- Almost 170 built-in regex
+- Single file (portable app)
 - Works on Linux / Windows / MAC .... Calculator? Perhaps ..
 - Made in .NET Core / Standard (why not)? =)
 - Open source... Like? use without moderation hahaha
