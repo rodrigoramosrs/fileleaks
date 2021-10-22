@@ -31,36 +31,75 @@ namespace FileLeaks.Core.Services
         {
             //Dictionary<string, Match> result = new Dictionary<string, Match>();
             List<MatchResult> result = new List<MatchResult>();
-            foreach (var line in Content)
-            {
-                Parallel.ForEach(_RegexDictionary,
+
+
+            Parallel.ForEach(Content,
                 new ParallelOptions
                 {
                     MaxDegreeOfParallelism = Environment.ProcessorCount * 10
                 },
-                keyValuePair =>
+                line =>
                 {
-
-                    var Match = Regex.Match(line, keyValuePair.Value);
-                    if (Match.Success)
-                    {
-                        var matchResult = new MatchResult()
+                    Parallel.ForEach(_RegexDictionary,
+                        new ParallelOptions
                         {
-                            Name = keyValuePair.Key,
-                            Index = Match.Index,
-                            Length = Match.Value.Length,
-                            Result = Match.Value,
-                            Content = line,
-                        };
-
-                        lock (result)
+                            MaxDegreeOfParallelism = Environment.ProcessorCount * 10
+                        },
+                        keyValuePair =>
                         {
-                            result.Add(matchResult);
-                        }
 
-                    }
+                            var Match = Regex.Match(line, keyValuePair.Value);
+                            if (Match.Success)
+                            {
+                                var matchResult = new MatchResult()
+                                {
+                                    Name = keyValuePair.Key,
+                                    Index = Match.Index,
+                                    Length = Match.Value.Length,
+                                    Result = Match.Value,
+                                    Content = line,
+                                };
+
+                                lock (result)
+                                {
+                                    result.Add(matchResult);
+                                }
+
+                            }
+                        });
                 });
-            }
+
+
+            //foreach (var line in Content)
+            //{
+            //    Parallel.ForEach(_RegexDictionary,
+            //    new ParallelOptions
+            //    {
+            //        MaxDegreeOfParallelism = Environment.ProcessorCount * 10
+            //    },
+            //    keyValuePair =>
+            //    {
+
+            //        var Match = Regex.Match(line, keyValuePair.Value);
+            //        if (Match.Success)
+            //        {
+            //            var matchResult = new MatchResult()
+            //            {
+            //                Name = keyValuePair.Key,
+            //                Index = Match.Index,
+            //                Length = Match.Value.Length,
+            //                Result = Match.Value,
+            //                Content = line,
+            //            };
+
+            //            lock (result)
+            //            {
+            //                result.Add(matchResult);
+            //            }
+
+            //        }
+            //    });
+            //}
 
             return result.Count <= 0 ? null : result;
         }
