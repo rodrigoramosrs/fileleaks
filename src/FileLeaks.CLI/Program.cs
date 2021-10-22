@@ -46,7 +46,7 @@ namespace FileLeaks
             if (!Directory.Exists(@"./regex"))
                 Directory.CreateDirectory(@"./regex");
 
-            FileStream outputFileStream = new FileStream(@$"./regex/{outputName}", FileMode.OpenOrCreate);
+            FileStream outputFileStream = new FileStream(@$"./regex/{outputName}", FileMode.Create);
             Stream res = currentAssembly.GetManifestResourceStream(resourceName);
             if (res != null)
             {

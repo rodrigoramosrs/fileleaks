@@ -23,12 +23,8 @@ namespace FileLeaks.CLI.Command
             public string Name { get; set; }
 
             [CommandOption("-p|--path")]
-            [Description("Secret to test")]
-            public bool Path { get; set; }
-
-            [CommandOption("-t|--Test")]
-            [Description("Select test do you want")]
-            public int Test { get; set; }
+            [Description("Path to scan")]
+            public string Path { get; set; }
 
         }
 
@@ -40,7 +36,7 @@ namespace FileLeaks.CLI.Command
 
         public override int Execute(CommandContext context, Settings settings)
         {
-            Boot().GetAwaiter().GetResult();
+            Boot(settings).GetAwaiter().GetResult();
             return 0;
         }
 
@@ -51,8 +47,19 @@ namespace FileLeaks.CLI.Command
         private static ProgressTask CurrentSecretsTask;
         private static ProgressContext CurrentContext;
 
-        private async Task Boot()
+        private async Task Boot(Settings settings)
         {
+            _console.WriteLine();
+            if (string.IsNullOrEmpty(settings.Path))
+            {
+                _console.MarkupLine("[bold red]paramter path is empty. Please use the parameter \"-p {path}\" [/]");
+                _console.MarkupLine("[bold gray]eg: Fileleaks -p ./path/to/search [/]");
+                return;
+            }
+
+            _console.MarkupLine($"[bold yellow]Starting scanner...[/]");
+            _console.MarkupLine($"[bold yellow]Path: {settings.Path}[/]");
+
             var fileLeakerCore = new FileLeakCore($"{Environment.CurrentDirectory}/regex");
 
             fileLeakerCore.OnFinished += FileLeakerCore_OnFinished;
@@ -61,6 +68,7 @@ namespace FileLeaks.CLI.Command
             fileLeakerCore.OnStarted += FileLeakerCore_OnStarted;
             fileLeakerCore.OnTotalFilesCount += FileLeakerCore_OnTotalFilesCount;
 
+            
 
             await AnsiConsole.Progress()
                 .Columns(new ProgressColumn[]
@@ -85,7 +93,7 @@ namespace FileLeaks.CLI.Command
                     CurrentSecretsTask.IsIndeterminate = true;
 
 
-                    fileLeakerCore.DoSearch(@"c:/temp");
+                    fileLeakerCore.DoSearch(settings.Path);
 
                     while (!ctx.IsFinished)
                     {
