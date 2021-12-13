@@ -70,8 +70,10 @@ namespace FileLeaks.Core.Services
         {
             if (SizeUtils.ConvertBytesToMegabytes(new FileInfo(filePath).Length) > _MaxFileSizeMB) return null;
 
-            var FileContent = File.ReadAllLines(filePath);
-            
+
+            var FileContent = GetFileContent(filePath);
+            //var FileContent = File.ReadAllLines(filePath);
+            //
             var result = _RegexService.IsMatch(FileContent);
 
             if (result?.Count() > 0)
@@ -85,7 +87,30 @@ namespace FileLeaks.Core.Services
             return result;
         }
 
+        private string[] GetFileContent(string filePath)
+        {
+            FileInfo info = new FileInfo(filePath);
+            string[] result = null;
+            string FileContent = File.ReadAllText(filePath);
+            switch (info.Extension)
+            {
+                case ".js":
 
+                    result = new Jsbeautifier.Beautifier(new Jsbeautifier.BeautifierOptions() { })
+                        .Beautify(FileContent)
+                        .Split('\n');
+                    break;
+                case ".json":
+                    var obj = Newtonsoft.Json.JsonConvert.DeserializeObject(FileContent);
+                    result = Newtonsoft.Json.JsonConvert.SerializeObject(obj, Newtonsoft.Json.Formatting.Indented).Split('\n');
+                    break;
+                default:
+                    //result = File.ReadAllLines(filePath);
+                    result = FileContent.Split('\n');
+                    break;
+            }
 
+            return result ?? new string[] { "" };
+        }
     }
 }
