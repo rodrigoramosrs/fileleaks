@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "FileLeaks.CLI": {
+      "commandName": "Project",
+      "commandLineArgs": "-p \"C:\\Users\\rodri\\Documents\\GitHub\\gitdork\\src\\bin\\Debug\\netcoreapp3.1\\output\""
+    }
+  }
+}

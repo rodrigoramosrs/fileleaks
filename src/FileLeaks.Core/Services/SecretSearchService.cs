@@ -20,7 +20,7 @@ namespace FileLeaks.Core.Services
         private readonly int _MaxFileSizeMB;
         private readonly string[] _ExtensionsToIgnore;
 
-        public SecretSearchService(string RegexDirectory, int MaxFileSizeMB = 50)
+        public SecretSearchService(string RegexDirectory, int MaxFileSizeMB = 100)
         {
             _FileService = new FileService();
             _RegexService = new RegexService(RegexDirectory);
@@ -70,11 +70,19 @@ namespace FileLeaks.Core.Services
         {
             if (SizeUtils.ConvertBytesToMegabytes(new FileInfo(filePath).Length) > _MaxFileSizeMB) return null;
 
-
-            var FileContent = GetFileContent(filePath);
-            //var FileContent = File.ReadAllLines(filePath);
-            //
-            var result = _RegexService.IsMatch(FileContent);
+            bool UseLegacy = true;
+            IEnumerable<MatchResult> result = new List<MatchResult>();
+            if (UseLegacy)
+            {
+                var FileContent = GetFileContent(filePath);
+                //var FileContent = File.ReadAllLines(filePath);
+                //
+                result = _RegexService.IsMatch(FileContent);
+            }
+            else
+            {
+                _RegexService.IsMatchFromFile(filePath);
+            }
 
             if (result?.Count() > 0)
             {

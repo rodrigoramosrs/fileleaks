@@ -157,6 +157,22 @@ namespace FileLeaks.CLI.Command
         {
             TotalSecretsFound++;
             CurrentSecretsTask.Description = $"[yellow bold]Secrets found: {TotalSecretsFound}[/]";
+
+            StringBuilder contentOutput = new StringBuilder();
+
+            contentOutput.AppendLine($" | - Key: {e.Name} | Secret: {e.Result}");
+            contentOutput.AppendLine($" | - Content: {e.Content.TrimStart().TrimEnd()}");
+            contentOutput.AppendLine($" | ");
+
+            try
+            {
+                File.AppendAllText("temp.txt", contentOutput.ToString());
+            }
+            catch (Exception)
+            {
+            }
+            
+
             //Console.WriteLine("Secret found: " + e.FilePath);
         }
 

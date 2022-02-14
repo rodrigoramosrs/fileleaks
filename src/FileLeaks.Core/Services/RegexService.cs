@@ -30,6 +30,27 @@ namespace FileLeaks.Core.Services
 
         }
 
+        public IEnumerable<MatchResult> IsMatchFromFile(string File)
+        {
+            var result = new List<MatchResult>();
+            foreach (var regex in _RegexDictionary)
+            {
+                var Match = RipGrepService.RegexSearch(File, regex.Value);
+
+                result.Add(new MatchResult()
+                {
+                    Name = regex.Key,
+                    Index = Match.Index,
+                    Length = Match.Result.Length,
+                    Result = Match.Result,
+                    Content = "",
+                });
+            }
+            return result;
+
+
+        }
+
         public IEnumerable<MatchResult> IsMatch(string[] Content)
         {
             //Dictionary<string, Match> result = new Dictionary<string, Match>();
