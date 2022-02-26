@@ -100,23 +100,32 @@ namespace FileLeaks.Core.Services
             FileInfo info = new FileInfo(filePath);
             string[] result = null;
             string FileContent = File.ReadAllText(filePath);
-            switch (info.Extension)
+            try
             {
-                case ".js":
+                switch (info.Extension)
+                {
+                    case ".js":
 
-                    result = new Jsbeautifier.Beautifier(new Jsbeautifier.BeautifierOptions() { })
-                        .Beautify(FileContent)
-                        .Split('\n');
-                    break;
-                case ".json":
-                    var obj = Newtonsoft.Json.JsonConvert.DeserializeObject(FileContent);
-                    result = Newtonsoft.Json.JsonConvert.SerializeObject(obj, Newtonsoft.Json.Formatting.Indented).Split('\n');
-                    break;
-                default:
-                    //result = File.ReadAllLines(filePath);
-                    result = FileContent.Split('\n');
-                    break;
+                        result = new Jsbeautifier.Beautifier(new Jsbeautifier.BeautifierOptions() { })
+                            .Beautify(FileContent)
+                            .Split('\n');
+                        break;
+                    case ".json":
+                        var obj = Newtonsoft.Json.JsonConvert.DeserializeObject(FileContent);
+                        result = Newtonsoft.Json.JsonConvert.SerializeObject(obj, Newtonsoft.Json.Formatting.Indented).Split('\n');
+                        break;
+                    default:
+                        //result = File.ReadAllLines(filePath);
+                        result = FileContent.Split('\n');
+                        break;
+                }
             }
+            catch (Exception)
+            {
+                //TODO: IMPLEMENT EXCEPTION
+                result = FileContent.Split('\n');
+            }
+            
 
             return result ?? new string[] { "" };
         }
