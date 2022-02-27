@@ -14,17 +14,21 @@ namespace FileLeaks.Core.Services
     {
         private static TimeSpan ExecutionTimeout = TimeSpan.FromMinutes(1);
 
-        private readonly Dictionary<string, string> _RegexDictionary;
+        private readonly Dictionary<string, Regex> _CompiledRegexDictionary;
+        private readonly Dictionary<string, string> _SimpleRegexDictionary;
         public RegexService(string RegexDirectory)
         {
-            _RegexDictionary = new Dictionary<string, string>();
+            _CompiledRegexDictionary = new Dictionary<string, Regex>();
+            _SimpleRegexDictionary = new Dictionary<string, string>();
 
             foreach (string filePath in Directory.GetFiles(RegexDirectory, "*.json", SearchOption.AllDirectories))
             {
                 var jsonData = JsonConvert.DeserializeObject<Dictionary<string, string>>(File.ReadAllText(filePath));
+
                 foreach (var item in jsonData)
                 {
-                    _RegexDictionary.Add(item.Key, item.Value);
+                    _CompiledRegexDictionary.Add(item.Key, new Regex(item.Value, RegexOptions.Compiled, TimeSpan.FromSeconds(60)));
+                    _SimpleRegexDictionary.Add(item.Key, item.Value);
                 }
             }
 
@@ -33,7 +37,7 @@ namespace FileLeaks.Core.Services
         public IEnumerable<MatchResult> IsMatchFromFile(string File)
         {
             var result = new List<MatchResult>();
-            foreach (var regex in _RegexDictionary)
+            foreach (var regex in _SimpleRegexDictionary)
             {
                 var Match = RipGrepService.RegexSearch(File, regex.Value);
 
@@ -65,7 +69,7 @@ namespace FileLeaks.Core.Services
                 {
                     if (string.IsNullOrEmpty(line)) return;
 
-                    Parallel.ForEach(_RegexDictionary,
+                    Parallel.ForEach(_CompiledRegexDictionary,
                         new ParallelOptions
                         {
                             MaxDegreeOfParallelism = Environment.ProcessorCount * 10,
@@ -82,7 +86,7 @@ namespace FileLeaks.Core.Services
 
                                 Task task = Task.Factory.StartNew(() =>
                                 {
-                                    var Match = Regex.Match(line, keyValuePair.Value, RegexOptions.None, TimeSpan.FromSeconds(60));
+                                    var Match = keyValuePair.Value.Match(line);// Regex.Match(line, keyValuePair.Value, RegexOptions.None, TimeSpan.FromSeconds(60));
                                     List<MatchResult> localResult = new List<MatchResult>();
                                     if (Match.Success)
                                     {
