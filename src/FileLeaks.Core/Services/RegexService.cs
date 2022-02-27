@@ -60,77 +60,65 @@ namespace FileLeaks.Core.Services
             //Dictionary<string, Match> result = new Dictionary<string, Match>();
             List<MatchResult> result = new List<MatchResult>();
 
-            var foreachResult = Parallel.ForEach(Content,
+            string FullContent = string.Join("\n", Content);
+            var foreachResult = Parallel.ForEach(_CompiledRegexDictionary,
                 new ParallelOptions
                 {
-                    MaxDegreeOfParallelism = Environment.ProcessorCount * 10
+                    MaxDegreeOfParallelism = Environment.ProcessorCount * 10,
                 },
-                line =>
+                keyValuePair =>
                 {
-                    if (string.IsNullOrEmpty(line)) return;
+                    //Console.WriteLine(line);
+                    try
+                    {
+                        var tokenSource = new CancellationTokenSource(ExecutionTimeout);
+                        var token = tokenSource.Token;
 
-                    Parallel.ForEach(_CompiledRegexDictionary,
-                        new ParallelOptions
+                        Task task = Task.Factory.StartNew(() =>
                         {
-                            MaxDegreeOfParallelism = Environment.ProcessorCount * 10,
-
-                        },
-                        keyValuePair =>
-                        {
-
-                            //Console.WriteLine(line);
-                            try
+                            var Match = keyValuePair.Value.Match(FullContent);// Regex.Match(line, keyValuePair.Value, RegexOptions.None, TimeSpan.FromSeconds(60));
+                            List<MatchResult> localResult = new List<MatchResult>();
+                            if (Match.Success)
                             {
-                                var tokenSource = new CancellationTokenSource(ExecutionTimeout);
-                                var token = tokenSource.Token;
-
-                                Task task = Task.Factory.StartNew(() =>
+                                do
                                 {
-                                    var Match = keyValuePair.Value.Match(line);// Regex.Match(line, keyValuePair.Value, RegexOptions.None, TimeSpan.FromSeconds(60));
-                                    List<MatchResult> localResult = new List<MatchResult>();
-                                    if (Match.Success)
+                                    localResult.Add(new MatchResult()
                                     {
-                                        do
-                                        {
-                                            localResult.Add(new MatchResult()
-                                            {
-                                                Name = keyValuePair.Key,
-                                                Index = Match.Index,
-                                                Length = Match.Value.Length,
-                                                Result = Match.Value,
-                                                Content = line,
-                                            });
-                                            Match = Match.NextMatch();
+                                        Name = keyValuePair.Key,
+                                        Index = Match.Index,
+                                        Length = Match.Value.Length,
+                                        Result = Match.Value,
+                                        Content = Match.Value,
+                                    });
+                                    Match = Match.NextMatch();
 
-                                        } while (Match.Success);
+                                } while (Match.Success);
 
-                                        lock (result)
-                                        {
-                                            result.AddRange(localResult);
-                                            tokenSource.Cancel();
-                                        }
-
-                                    }
-
+                                lock (result)
+                                {
+                                    result.AddRange(localResult);
                                     tokenSource.Cancel();
+                                }
 
-
-                                }, token);
-                                task.Wait();
-                            }
-                            catch (Exception ex)
-                            {
-
-                                var exception = ex;
                             }
 
-                        });
+                            tokenSource.Cancel();
+
+
+                        }, token);
+                        task.Wait();
+                    }
+                    catch (Exception ex)
+                    {
+
+                        var exception = ex;
+                    }
+
                 });
-
 
             while (!foreachResult.IsCompleted)
                 Thread.Sleep(1000);
-            
+
             return result.Count <= 0 ? null : result;
         }
     }
