@@ -56,8 +56,7 @@ namespace FileLeaks.Core.Services
             //Dictionary<string, Match> result = new Dictionary<string, Match>();
             List<MatchResult> result = new List<MatchResult>();
 
-
-            Parallel.ForEach(Content,
+            var foreachResult = Parallel.ForEach(Content,
                 new ParallelOptions
                 {
                     MaxDegreeOfParallelism = Environment.ProcessorCount * 10
@@ -76,8 +75,6 @@ namespace FileLeaks.Core.Services
                         {
 
                             //Console.WriteLine(line);
-
-
                             try
                             {
                                 var tokenSource = new CancellationTokenSource(ExecutionTimeout);
@@ -85,12 +82,13 @@ namespace FileLeaks.Core.Services
 
                                 Task task = Task.Factory.StartNew(() =>
                                 {
-                                    var Match = Regex.Match(line, keyValuePair.Value);
+                                    var Match = Regex.Match(line, keyValuePair.Value, RegexOptions.None, TimeSpan.FromSeconds(60));
+                                    List<MatchResult> localResult = new List<MatchResult>();
                                     if (Match.Success)
                                     {
-                                        lock (result)
+                                        do
                                         {
-                                            result.Add(new MatchResult()
+                                            localResult.Add(new MatchResult()
                                             {
                                                 Name = keyValuePair.Key,
                                                 Index = Match.Index,
@@ -98,11 +96,21 @@ namespace FileLeaks.Core.Services
                                                 Result = Match.Value,
                                                 Content = line,
                                             });
+                                            Match = Match.NextMatch();
+
+                                        } while (Match.Success);
+
+                                        lock (result)
+                                        {
+                                            result.AddRange(localResult);
                                             tokenSource.Cancel();
                                         }
 
-
                                     }
+
+                                    tokenSource.Cancel();
+
+
                                 }, token);
                                 task.Wait();
                             }
@@ -115,37 +123,10 @@ namespace FileLeaks.Core.Services
                         });
                 });
 
-            //foreach (var line in Content)
-            //{
-            //    Parallel.ForEach(_RegexDictionary,
-            //    new ParallelOptions
-            //    {
-            //        MaxDegreeOfParallelism = Environment.ProcessorCount * 10
-            //    },
-            //    keyValuePair =>
-            //    {
 
-            //        var Match = Regex.Match(line, keyValuePair.Value);
-            //        if (Match.Success)
-            //        {
-            //            var matchResult = new MatchResult()
-            //            {
-            //                Name = keyValuePair.Key,
-            //                Index = Match.Index,
-            //                Length = Match.Value.Length,
-            //                Result = Match.Value,
-            //                Content = line,
-            //            };
-
-            //            lock (result)
-            //            {
-            //                result.Add(matchResult);
-            //            }
-
-            //        }
-            //    });
-            //}
-
+            while (!foreachResult.IsCompleted)
+                Thread.Sleep(1000);
+            
             return result.Count <= 0 ? null : result;
         }
     }
