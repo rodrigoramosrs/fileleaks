@@ -1,4 +1,5 @@
 ﻿using FileLeaks.Core;
+using FileLeaks.Extension;
 using Spectre.Console;
 using Spectre.Console.Cli;
 using System;
@@ -109,22 +110,30 @@ namespace FileLeaks.CLI.Command
         private void ProcessDataAndFinishProcess()
         {
             StringBuilder contentOutput = new StringBuilder();
-            foreach (var secretResult in _SecretResultList)
+            try
             {
-                _console.MarkupLine($"[bold yellow][[+]] [/][bold yellow]File: {secretResult.FilePath}[/]");
-                contentOutput.AppendLine($"[+] File: {secretResult.FilePath}");
-                foreach (var matchResult in secretResult.MatchResultList)
+                foreach (var secretResult in _SecretResultList)
                 {
-                    _console.MarkupLine($"[bold yellow] | -[/][bold] Key: {matchResult.Name.Replace("[", "[[").Replace("]", "]]")} | Secret: {matchResult.Result.Replace("[", "[[").Replace("]", "]]")}[/]");
-                    //_console.MarkupLine($"[bold yellow] | -[/][bold] [/]");
-                    _console.MarkupLine($"[bold yellow] | -[/][bold] Content: {matchResult.Content.Replace("[", "[[").Replace("]", "]]")}[/]");
-                    _console.MarkupLine($"[bold yellow] | [/]");
-                    contentOutput.AppendLine($" | - Key: {matchResult.Name} | Secret: {matchResult.Result}");
-                    contentOutput.AppendLine($" | - Content: {matchResult.Content.TrimStart().TrimEnd()}");
-                    contentOutput.AppendLine($" | ");
-                }
+                    _console.MarkupLine($"[bold yellow][[+]] [/][bold yellow]File: {secretResult.FilePath.NormalizeString()}[/]");
+                    contentOutput.AppendLine($"[+] File: {secretResult.FilePath}");
+                    foreach (var matchResult in secretResult.MatchResultList)
+                    {
+                        _console.MarkupLine($"[bold yellow] | -[/][bold] Key: {matchResult.Name.NormalizeString()} | Secret: {matchResult.Result.NormalizeString()}[/]");
+                        //_console.MarkupLine($"[bold yellow] | -[/][bold] [/]");
+                        _console.MarkupLine($"[bold yellow] | -[/][bold] Content: {matchResult.Content.NormalizeString()}[/]");
+                        _console.MarkupLine($"[bold yellow] | [/]");
+                        contentOutput.AppendLine($" | - Key: {matchResult.Name} | Secret: {matchResult.Result}");
+                        contentOutput.AppendLine($" | - Content: {matchResult.Content.TrimStart().TrimEnd()}");
+                        contentOutput.AppendLine($" | ");
+                    }
 
+                }
             }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error on console write: " + ex.ToString());
+            }
+            
             File.WriteAllText($"{Environment.CurrentDirectory}/fileleaks_output.txt", contentOutput.ToString());
             _console.MarkupLine($"[bold] Report saved in {Environment.CurrentDirectory}/fileleaks_output.txt[/]");
         }
