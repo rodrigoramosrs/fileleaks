@@ -1,5 +1,6 @@
 ﻿using FileLeaks.Core;
 using FileLeaks.Extension;
+using FileLeaks.Utils;
 using Spectre.Console;
 using Spectre.Console.Cli;
 using System;
@@ -15,7 +16,7 @@ namespace FileLeaks.CLI.Command
 {
     public class SearchSecretCommand : Command<SearchSecretCommand.Settings>
     {
-        private readonly IAnsiConsole _console;
+        //private readonly IAnsiConsole ConsoleUtils;
 
         public class Settings : CommandSettings
         {
@@ -32,7 +33,10 @@ namespace FileLeaks.CLI.Command
 
         public SearchSecretCommand(IAnsiConsole console)
         {
-            _console = console;
+            //ConsoleUtils = console;
+
+            ConsoleUtils.SetAnsiConsoleInstance(console);
+
         }
 
         public override int Execute(CommandContext context, Settings settings)
@@ -50,16 +54,16 @@ namespace FileLeaks.CLI.Command
 
         private async Task Boot(Settings settings)
         {
-            _console.WriteLine();
+            ConsoleUtils.WriteLine("");
             if (string.IsNullOrEmpty(settings.Path))
             {
-                _console.MarkupLine("[bold red]paramter path is empty. Please use the parameter \"-p {path}\" [/]");
-                _console.MarkupLine("[bold gray]eg: Fileleaks -p ./path/to/search [/]");
+                ConsoleUtils.MarkupLine("[bold red]paramter path is empty. Please use the parameter \"-p {path}\" [/]");
+                ConsoleUtils.MarkupLine("[bold gray]eg: Fileleaks -p ./path/to/search [/]");
                 return;
             }
 
-            _console.MarkupLine($"[bold yellow]Starting scanner...[/]");
-            _console.MarkupLine($"[bold yellow]Path: {settings.Path}[/]");
+            ConsoleUtils.MarkupLine($"[bold yellow]Starting scanner...[/]");
+            ConsoleUtils.MarkupLine($"[bold yellow]Path: {settings.Path}[/]");
 
             var fileLeakerCore = new FileLeakCore();
 
@@ -114,14 +118,14 @@ namespace FileLeaks.CLI.Command
             {
                 foreach (var secretResult in _SecretResultList)
                 {
-                    _console.MarkupLine($"[bold yellow][[+]] [/][bold yellow]File: {secretResult.FilePath.NormalizeString()}[/]");
+                    ConsoleUtils.MarkupLine($"[bold yellow][[+]] [/][bold yellow]File: {secretResult.FilePath.RemoveInvalidCharacteres()}[/]");
                     contentOutput.AppendLine($"[+] File: {secretResult.FilePath}");
                     foreach (var matchResult in secretResult.MatchResultList)
                     {
-                        _console.MarkupLine($"[bold yellow] | -[/][bold] Key: {matchResult.Name.NormalizeString()} | Secret: {matchResult.Result.NormalizeString()}[/]");
-                        //_console.MarkupLine($"[bold yellow] | -[/][bold] [/]");
-                        _console.MarkupLine($"[bold yellow] | -[/][bold] Content: {matchResult.Content.NormalizeString()}[/]");
-                        _console.MarkupLine($"[bold yellow] | [/]");
+                        ConsoleUtils.MarkupLine($"[bold yellow] | -[/][bold] Key: {matchResult.Name.RemoveInvalidCharacteres()} | Secret: {matchResult.Result.RemoveInvalidCharacteres()}[/]");
+                        //ConsoleUtils.MarkupLine($"[bold yellow] | -[/][bold] [/]");
+                        ConsoleUtils.MarkupLine($"[bold yellow] | -[/][bold] Content: {matchResult.Content.RemoveInvalidCharacteres()}[/]");
+                        ConsoleUtils.MarkupLine($"[bold yellow] | [/]");
                         contentOutput.AppendLine($" | - Key: {matchResult.Name} | Secret: {matchResult.Result}");
                         contentOutput.AppendLine($" | - Content: {matchResult.Content.TrimStart().TrimEnd()}");
                         contentOutput.AppendLine($" | ");
@@ -131,11 +135,11 @@ namespace FileLeaks.CLI.Command
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Error on console write: " + ex.ToString());
+                ConsoleUtils.WriteLine("Error on console write: " + ex.ToString());
             }
             
             File.WriteAllText($"{Environment.CurrentDirectory}/fileleaks_output.txt", contentOutput.ToString());
-            _console.MarkupLine($"[bold] Report saved in {Environment.CurrentDirectory}/fileleaks_output.txt[/]");
+            ConsoleUtils.MarkupLine($"[bold] Report saved in {Environment.CurrentDirectory}/fileleaks_output.txt[/]");
         }
 
         private static IEnumerable<Core.Models.SecretResult> _SecretResultList;
@@ -167,18 +171,18 @@ namespace FileLeaks.CLI.Command
             TotalSecretsFound++;
             CurrentSecretsTask.Description = $"[yellow bold]Secrets found: {TotalSecretsFound}[/]";
 
-            StringBuilder contentOutput = new StringBuilder();
+            //StringBuilder contentOutput = new StringBuilder();
 
-            contentOutput.AppendLine($" | - Key: {e.Name} | Secret: {e.Result}");
-            contentOutput.AppendLine($" | - Content: {e.Content.TrimStart().TrimEnd()}");
-            contentOutput.AppendLine($" | ");
+            //contentOutput.AppendLine($" | - Key: {e.Name} | Secret: {e.Result}");
+            //contentOutput.AppendLine($" | - Content: {e.Content.TrimStart().TrimEnd()}");
+            //contentOutput.AppendLine($" | ");
 
             //Console.WriteLine("Secret found: " + e.FilePath);
         }
 
         private static void FileLeakerCore_OnProgressChange(object sender, Core.Models.Events.FileScanProgress e)
         {
-            CurrentFileTask.Description = $"[blue bold]File {Path.GetFileName(e.Filename)}[/]";
+            CurrentFileTask.Description = $"[blue bold]File {Path.GetFileName(e.Filename).RemoveInvalidCharacteres()}[/]";
             CurrentFileTask.Value = e.ProgressPercentage;
             CurrentSecretsTask.Value = e.ProgressPercentage;
             CurrentProgressTask.Value = e.ProgressPercentage;

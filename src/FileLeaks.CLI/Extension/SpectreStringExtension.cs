@@ -8,15 +8,15 @@ namespace FileLeaks.Extension
 {
     public static class SpectreStringExtension
     {
-        public static string NormalizeString(this string value)
+        public static string RemoveInvalidCharacteres(this string value)
         {
             return value
-                .Replace("'", "''")
-                .Replace("\"", "\"\"")
-                .Replace("[", "[[")
-                .Replace("]", "]]")
-                .Replace("/", "//")
-                .Replace("\\", "\\\\");
+                .Replace("'", "")
+                .Replace("\"", "")
+                .Replace("[", "")
+                .Replace("]", "")
+                .Replace("/", "")
+                .Replace("\\", "");
         }
     }
 }
