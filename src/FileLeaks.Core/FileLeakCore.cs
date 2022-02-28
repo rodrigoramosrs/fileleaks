@@ -8,9 +8,9 @@ namespace FileLeaks.Core
     {
         private readonly SecretSearchService _SecretSearchService;
 
-        public FileLeakCore(string RegexDirectory, int MaxFileSizeMB = 50)
+        public FileLeakCore(int MaxFileSizeMB = 50)
         {
-            _SecretSearchService = new SecretSearchService(RegexDirectory, MaxFileSizeMB);
+            _SecretSearchService = new SecretSearchService(MaxFileSizeMB);
             _SecretSearchService.OnProgressChange += _SecretSearchService_OnProgressChange; ;
             _SecretSearchService.OnTotalFilesCount += _SecretSearchService_OnTotalFilesCount;
             _SecretSearchService.OnSecretFound += _SecretSearchService_OnSecretFound;

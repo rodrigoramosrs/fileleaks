@@ -20,10 +20,10 @@ namespace FileLeaks.Core.Services
         private readonly int _MaxFileSizeMB;
         private readonly string[] _ExtensionsToIgnore;
 
-        public SecretSearchService(string RegexDirectory, int MaxFileSizeMB = 100)
+        public SecretSearchService( int MaxFileSizeMB = 100)
         {
             _FileService = new FileService();
-            _RegexService = new RegexService(RegexDirectory);
+            _RegexService = new RegexService();
             _MaxFileSizeMB = MaxFileSizeMB;
 
             if (File.Exists("extensions_to_ignore.conf"))

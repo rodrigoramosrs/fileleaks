@@ -60,7 +60,7 @@ namespace FileLeaks.CLI.Command
             _console.MarkupLine($"[bold yellow]Starting scanner...[/]");
             _console.MarkupLine($"[bold yellow]Path: {settings.Path}[/]");
 
-            var fileLeakerCore = new FileLeakCore($"{Environment.CurrentDirectory}/regex");
+            var fileLeakerCore = new FileLeakCore();
 
             fileLeakerCore.OnFinished += FileLeakerCore_OnFinished;
             fileLeakerCore.OnProgressChange += FileLeakerCore_OnProgressChange;

@@ -1,5 +1,6 @@
 ﻿using FileLeaks.CLI.Command;
 using FileLeaks.Core;
+using FileLeaks.Core.Services;
 using Spectre.Console;
 using Spectre.Console.Cli;
 using System;
@@ -40,20 +41,29 @@ namespace FileLeaks
         {
 
             string resourceName = "FileLeaks.regex.all.json";
-            string outputName = "all.json";
+            
             Assembly currentAssembly = Assembly.GetExecutingAssembly();
 
-            if (!Directory.Exists(@"./regex"))
-                Directory.CreateDirectory(@"./regex");
-
-            FileStream outputFileStream = new FileStream(@$"./regex/{outputName}", FileMode.Create);
             Stream res = currentAssembly.GetManifestResourceStream(resourceName);
-            if (res != null)
+
+            using (StreamReader reader = new StreamReader(res))
             {
-                res.CopyTo(outputFileStream);
-                res.Close();
+                RegexService.RegexJsonContent = reader.ReadToEnd();
             }
-            outputFileStream.Close();
+
+            //string outputName = "all.json";
+            //if (!Directory.Exists(@"./regex"))
+            //    Directory.CreateDirectory(@"./regex");
+            //FileStream outputFileStream = new FileStream(@$"./regex/{outputName}", FileMode.Create);
+            //if (res != null)
+            //{
+            //    res.CopyTo(outputFileStream);
+            //    res.Close();
+            //}
+            //outputFileStream.Close();
+
+
+            //File.Delete(@$"./regex/{outputName}");
         }
     }
 }

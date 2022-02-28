@@ -16,20 +16,19 @@ namespace FileLeaks.Core.Services
 
         private readonly Dictionary<string, Regex> _CompiledRegexDictionary;
         private readonly Dictionary<string, string> _SimpleRegexDictionary;
-        public RegexService(string RegexDirectory)
+
+        public static string RegexJsonContent { get; set; }
+        public RegexService()
         {
             _CompiledRegexDictionary = new Dictionary<string, Regex>();
             _SimpleRegexDictionary = new Dictionary<string, string>();
 
-            foreach (string filePath in Directory.GetFiles(RegexDirectory, "*.json", SearchOption.AllDirectories))
-            {
-                var jsonData = JsonConvert.DeserializeObject<Dictionary<string, string>>(File.ReadAllText(filePath));
+            var jsonData = JsonConvert.DeserializeObject<Dictionary<string, string>>(RegexJsonContent);
 
-                foreach (var item in jsonData)
-                {
-                    _CompiledRegexDictionary.Add(item.Key, new Regex(item.Value, RegexOptions.Compiled, TimeSpan.FromSeconds(60)));
-                    _SimpleRegexDictionary.Add(item.Key, item.Value);
-                }
+            foreach (var item in jsonData)
+            {
+                _CompiledRegexDictionary.Add(item.Key, new Regex(item.Value, RegexOptions.Compiled, TimeSpan.FromSeconds(60)));
+                _SimpleRegexDictionary.Add(item.Key, item.Value);
             }
 
         }
