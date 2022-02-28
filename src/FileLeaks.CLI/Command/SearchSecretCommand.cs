@@ -125,8 +125,8 @@ namespace FileLeaks.CLI.Command
                 }
 
             }
-            File.WriteAllText($"{Environment.CurrentDirectory}/result.txt", contentOutput.ToString());
-            _console.MarkupLine($"[bold] Report saved in {Environment.CurrentDirectory}/result.txt[/]");
+            File.WriteAllText($"{Environment.CurrentDirectory}/fileleaks_output.txt", contentOutput.ToString());
+            _console.MarkupLine($"[bold] Report saved in {Environment.CurrentDirectory}/fileleaks_output.txt[/]");
         }
 
         private static IEnumerable<Core.Models.SecretResult> _SecretResultList;
@@ -163,15 +163,6 @@ namespace FileLeaks.CLI.Command
             contentOutput.AppendLine($" | - Key: {e.Name} | Secret: {e.Result}");
             contentOutput.AppendLine($" | - Content: {e.Content.TrimStart().TrimEnd()}");
             contentOutput.AppendLine($" | ");
-
-            try
-            {
-                File.AppendAllText("temp.txt", contentOutput.ToString());
-            }
-            catch (Exception)
-            {
-            }
-            
 
             //Console.WriteLine("Secret found: " + e.FilePath);
         }
