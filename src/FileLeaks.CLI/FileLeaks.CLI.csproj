@@ -10,9 +10,13 @@
 
   <ItemGroup>
     <None Remove="regex\all.json" />
+    <None Remove="regex\first_big.json" />
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="regex\first_big.json">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </EmbeddedResource>
     <EmbeddedResource Include="regex\all.json">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </EmbeddedResource>

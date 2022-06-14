@@ -4,6 +4,7 @@ using FileLeaks.Core.Models.Events;
 using FileLeaks.Utils;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
@@ -20,14 +21,16 @@ namespace FileLeaks.Core.Services
         private readonly int _MaxFileSizeMB;
         private readonly string[] _ExtensionsToIgnore;
 
-        public SecretSearchService( int MaxFileSizeMB = 100)
+        public SecretSearchService(int MaxFileSizeMB = 200)
         {
             _FileService = new FileService();
             _RegexService = new RegexService();
             _MaxFileSizeMB = MaxFileSizeMB;
 
-            if (File.Exists("extensions_to_ignore.conf"))
-                _ExtensionsToIgnore = File.ReadAllLines("extensions_to_ignore.conf");
+            string Filename = Path.Combine(Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName), "extensions_to_ignore.conf");
+
+            if (File.Exists(Filename))
+                _ExtensionsToIgnore = File.ReadAllLines(Filename);
             else
                 _ExtensionsToIgnore = new string[0];
         }
@@ -61,7 +64,8 @@ namespace FileLeaks.Core.Services
             }
 
             this.NotifyFinish(result);
-            return result;
+            result?.OrderBy(x => x.FilePath)?.ToList()?.ForEach(x => x.MatchResultList.OrderBy(y => y.Name));
+            return result; //.ThenBy(x => x.MatchResultList.OrderBy(y => y.Name));
         }
 
 
@@ -125,7 +129,7 @@ namespace FileLeaks.Core.Services
                 //TODO: IMPLEMENT EXCEPTION
                 result = FileContent.Split('\n');
             }
-            
+
 
             return result ?? new string[] { "" };
         }
